@@ -1,0 +1,65 @@
+<div class="row">
+	<div class="large-4  small-4 columns">
+		<a onclick="$j('#picModal').foundation('reveal', 'open');"><img ng-src="{{Incident__c.imgsrc}}"/></a>
+	</div>
+	<div class="large-8 small-8  columns">
+		<h5 class="subheader" style="margin: 0px;">{{Incident__c.Type__c}}</h5>
+		<p style="margin-bottom: 5px; font-size: 80%;"> {{users[Incident__c.CreatedById].Name}}   <span style="color: blue;">{{Incident__c.timeago}}</span></p>
+
+		<ul class="inline-list" style="margin-bottom: 5px;">
+			<li><div class="label radius" ng-class="{'success': Incident__c.Status__c == 'Assigned', 'alert': Incident__c.Status__c == 'New'}">{{Incident__c.Status__c}}</div></li>
+			<li><div class="label radius"><span ng-if="Incident__c.Feeds.totalSize">{{Incident__c.Feeds.totalSize}}</span><span ng-if="!Incident__c.Feeds.totalSize">No</span> Comment(s)</div></li>
+		</ul>
+	</div>
+</div>
+
+<div class="row">
+	<div class="large-12 small-12 columns">
+		<p>{{Incident__c.Title__c}}</p>
+	</div>
+</div>
+
+	<div ng-if="Incident__c.Status__c == 'New'" class="row" style="margin-top: 15px;">
+				<div class="large-12 columns">
+					<a ng-click="assign()" class="button expand" style="background: #ee8b2e;"  >ASSIGN CASE</a>
+				</div>
+		</div>
+		
+	<div ng-if="Incident__c.Status__c == 'Assigned'" class="row" style="margin-top: 15px;">
+				<div class="large-12 columns">
+					<a ng-click="assignclose()" class="button expand" style="background: #ee8b2e;"  >CLOSE CASE</a>
+				</div>
+		</div>		
+		
+
+<div class="row" ng-repeat="c in Incident__c.Feeds.records">
+		<div class="large-12 small-12 columns"><hr/></div>
+		<div class="large-2 columns small-2"><img ng-src="{{users[c.CreatedById].SmallPhotoUrl}}"/></div>
+		<div class="large-10 columns small-10" style="padding-right: 0px;">
+				<blockquote style="padding-top: 0px;">{{c.Title}} {{c.Body}}<cite><small><strong> {{users[c.CreatedById].Name}}</strong> <span style="color: blue;">{{c.timeago}}</span></small></cite></blockquote>
+	
+		</div>
+		
+</div>
+		
+<div class="row" style="margin-top: 20px;">
+	<div class="small-12 columns">
+		<div class="row collapse">
+      <div class="small-10 columns">
+        <input type="text" placeholder="Add Comment" ng-model="FeedItem.Body"/>
+      </div>
+      <div class="small-2 columns">
+        <a ng-click="addcomment()" class="button postfix"  style="background: #732358;"><img style="height: 70%;" ng-src="{{static_resource_url}}/ulimages/images/icon-add-comment.png"/></a>
+      </div>
+      </div>
+  </div>
+</div>
+    
+<div id="picModal" class="reveal-modal tiny" data-reveal="true">
+	<a onclick="$j('#picModal').foundation('reveal', 'close');">
+		<h2>{{Incident__c.Type__c}}</h2>
+	  <img ng-src="{{Incident__c.imgsrc}}">
+  </a>
+  <a class="close-reveal-modal" onclick="$j('#picModal').foundation('reveal', 'close');">&#215;</a>
+</div>
+ 

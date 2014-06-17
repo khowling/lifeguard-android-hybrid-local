@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html ng-app="myApp" lang="en" class="no-js">
+<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="css/foundation.css" />
+		<style>
+			/* Override Foundation */
+		html, body {
+  		height: auto; }
+		</style>  
+		<link rel="stylesheet" href="css/slick.css"/>
+		<link rel="stylesheet" href="static_resources/lifeguardcss"/>
+	
+		<script	src="js/modernizr.js"></script>
+		<!-- 
+		<apex:includeScript value="{!$Resource.cordova230}"/>
+		<apex:includeScript value="{!$Resource.cordovaforce}"/>
+		<apex:includeScript value="{!$Resource.forcetk}" />
+		<apex:includeScript value="{!$Resource.momentjs}" />
+	 -->
+	 	<script	src="cordova-2.3.0.js" type="text/javascript"></script>
+	 	<script	src="cordova.force.js" type="text/javascript"></script>
+	 	<script src="static_resources/forcetk" type="text/javascript" ></script>
+	 	<script src="static_resources/moment.min.js" type="text/javascript"></script>
+	 	
+	 	<script>
+	 	
+		 	/* Required for iOS MobileSDK returning 15char Ids */
+			var convertId = function (inId){
+			    if (inId == null)
+			         return inId;
+			    //inId = inId.replace(/\"/g, "");
+			    if (inId.length != 15)
+			        return inId;
+			    var sfx = "";
+			    for (var i = 0; i < 3; i++) {
+			        var pos = 0;
+			        for (var j = 0; j < 5; j++) {
+			            var c = inId.charAt(i * 5 + j);
+			            if (c >= "A" && c <= "Z")
+			                pos += 1 << j;
+			        }
+			        if (pos <= 25)
+			            sfx += "ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(pos);
+			        else
+			            sfx += "012345".charAt(pos - 26);
+			    }
+			    return inId + sfx;
+			}
+
+	 		sf_userid = '{!$User.Id}';
+	 		//sf_userid = convertId('005w0000003Da3O');
+			sf_host_url = 'https://mobilex--c.eu3.visual.force.com';
+			static_resource_url = './static_resources';
+			sfdc_api_version = 'v30.0';
+			
+			/* Following just for local  testing */
+			clientId = '3MVG9Iu66FKeHhINkB1l7xt7kR8czFcCTUhgoA8Ol2Ltf1eYHOU4SqQRSEitYFDUpqRWcoQ2.dBv_a1Dyu5xa'; // needed for refresh
+			session_api = '00Dw0000000CpFJ!AQ8AQNz1Dqi1EuKLgLechoVae99icMrdAD6DDjtlVHq6L_TyvfbUpc8dkC.SPlknqlHk43oysRkcig7nHznp8HaweSMwihuG';
+			refresh_api = '5Aep861LcxvZX6gm0ekGTEeNoh9yuvKsIAGjs63wOX2dl178J6KfOgjjhTDiBWLPLcBq0a99cdjXtFANxCq7mPl';
+			
+		</script>
+	 	
+	 	<script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDaiVr9wjKIHZLpU8dBzviKO_r6HpAXSNo">
+    </script>
+	</head>
+	<body>
+	
+		 <nav class="fixed topimage" data-topbar="">
+		 	<div style="position:absolute; left:3%; top: 45px;">
+		 		<a ng-href='{{heading.navto}}'>
+		 		<img ng-if="heading.navicon != null" ng-src="{{static_resource_url}}/ulimages/images/{{heading.navicon}}.png" width="20"/></a>
+		 		</div>
+		   <div style="position:absolute; left:20%; top: 33px;">
+		   	<h6 style="margin: 0px; color: white; white-space:nowrap;">{{heading.title1}}</h6>
+		   	<h4 style="margin: 0px; color: white; white-space:nowrap;">{{heading.title2}}</h4></div>
+		 </nav>
+		 
+		<div style="margin-top: 100px; position: relative;"></div>
+		<div  class="ng-view view-animate"></div> 	
+		
+		<!-- Reveal Modals begin -->
+		<div id="firstModal" class="reveal-modal tiny" style="border: 0; box-shadow: 0 0 0; left: 50%;  margin-left: -40%; width: 80%; background-color: rgba(0, 0, 0, 0); top: 50px; min-height: 270px; padding: 0px;"  data-reveal="true">
+		  <a style="margin-right: 10px;" ng-click="close();" class="close-reveal-modal">&#215;</a>
+		  <a ng-click="close();">
+		  	<img ng-src="{{static_resource_url}}/ulimages/images/background-popup.png">
+				  <div class="modalHeader">
+					    	<h5 style="color: #96324a;">{{modal.title1}}</h5>
+					    	<p style="color: #797979;">{{modal.title2}}</p>
+					</div>
+				</img>
+			</a>
+		</div>
+ 
+		<script	src="js/angular.min.js"	type="text/javascript"></script>
+		<script	src="js/angular-route.js"	type="text/javascript"></script>
+		<script	src="js/angular-resource.js"	type="text/javascript"></script>
+		<script	src="js/angular-animate.js"	type="text/javascript"></script>
+
+		<script	type="text/javascript" src="js/jquery.js"></script>
+		<script	type="text/javascript" src="js/foundation.min.js"></script>
+		<script type="text/javascript" src="js/slick.min.js"></script>
+
+		<script type="text/javascript" src="static_resources/lifeguard_controller"></script>
+
+
+		<script>
+					// Get an instance of the REST API client and set the session ID
+			$j = jQuery.noConflict();
+			var forcetkClient = new forcetk.Client(clientId);
+			console.log ('initialising forcetk from visualforce sesion');
+			forcetkClient.setSessionToken(session_api, sfdc_api_version, sf_host_url );
+			forcetkClient.setRefreshToken(refresh_api);
+	
+			jQuery(document).foundation();
+			
+			var hybridapp = false;
+			var onDeviceReady = function () {
+				SFHybridApp.logToConsole("cordover is loaded");
+				hybridapp = true;
+				navigator.splashscreen.hide();
+				
+				
+	      SalesforceOAuthPlugin.getAuthCredentials(function(oauthResponse) {
+		      			SFHybridApp.logToConsole("initialising forcetk with session from app " + angular.toJson(oauthResponse));
+		            var oauthResponseData = oauthResponse;
+		            if (oauthResponse.data)  {
+		                oauthResponseData = oauthResponse.data;
+		            }
+		            
+		            
+		            sf_userid = convertId(oauthResponseData.userId);
+		            sf_host_url = oauthResponseData.instanceUrl;
+		            
+		            console.log ('initialising forcetk from mobileSDK sesion');
+		            forcetkClient = new forcetk.Client(oauthResponseData.clientId);
+								forcetkClient.setRefreshToken(oauthResponseData.refreshToken);
+								forcetkClient.refreshAccessToken(function(oauthResponse) {
+										forcetkClient.setSessionToken(oauthResponse.access_token, sfdc_api_version,  oauthResponse.instance_url);
+			                    },
+			                    function (e) { alert ('refresh error ' + e); });
+								
+								// forcetkClient.setSessionToken(oauthResponseData.accessToken, sfdc_api_version, oauthResponseData.instanceUrl);
+
+	            }, function(err) { SFHybridApp.logToConsole("initialising forcetk ERROR : " +  angular.toJson(err));});
+			}
+			
+			$j(document).ready(function() {
+		        //Add event listeners and so forth here
+		     SFHybridApp.logToConsole("onLoad: jquery ready");
+				document.addEventListener("deviceready", onDeviceReady,false);
+	
+		    });
+			
+		 </script>   
+	</body>
+</html>

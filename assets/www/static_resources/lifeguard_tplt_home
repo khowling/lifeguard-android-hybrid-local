@@ -1,0 +1,133 @@
+
+		<style>
+			div.boarder {
+				padding: 0px; 
+				border: 1px solid #cccccc;
+				height: 120px;
+			}
+			.centerme {
+				display: block; 
+				margin-left: auto;  
+				margin-right: auto;
+				margin-top: 15px;
+				height: 40px;
+			}
+			.report {
+				margin-bottom: 0px;
+				color: #EE8A00;
+				font-weight: bold;
+				display: block;
+			}
+		.reportSub {
+			color: #7D7D7D;
+		}
+		.multiple-items {
+			margin-top: 10px;
+		}
+		
+ 	.selected {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: #dddddd;
+            opacity: 0.4;
+            z-index: 999;
+	}
+		</style>
+		
+		<div class="row">
+			<div class="columns small-12">
+			
+					<h5 class="report">
+						REPORT AN ISSUE
+					</h5>
+					<h8 class="reportSub">
+						DIAL 911 IN CASE OF EMERGENCIES
+					</h8>
+			
+			</div>
+		
+		</div>
+		
+		
+	  <div class="row multiple-items" style="margin-bottom: 10px;">
+
+			<div><div class="boarder"><a href="#/create/INJURY" ng-click="aspin = true">
+				<div ng-show="aspin" class="selected"></div>
+				<img class="centerme" ng-src="{{static_resource_url}}/ulimages/images/icon-issue-first-aid.png"/>
+				<div style="color: #797979; font-size: 90%; margin-top: 10px; text-align:center">Injury</div></a></div></div>
+				
+			<div><div class="boarder"><a href="#/create/NEAR MISS" ng-click="bspin = true;">
+				<div ng-show="bspin" class="selected"></div>
+				<img class="centerme" ng-src="{{static_resource_url}}/ulimages/images/icon-issue-dangerous-occurrence.png"/>
+				<div style="color: #797979; font-size: 90%; margin-top: 10px; text-align:center">Near Miss</div></a></div></div>
+				
+			<div><div class="boarder"><a href="#/create/HAZARDOUS MATERIAL" ng-click="cspin = true;">
+				<div ng-show="cspin" class="selected"></div>
+				<img class="centerme" ng-src="{{static_resource_url}}/ulimages/images/icon-issue-near-miss.png"/>
+			<div style="color: #797979; font-size: 90%; margin-top: 10px; text-align:center">Hazardous Material</div></a></div></div>
+			
+			<div><div class="boarder"><a href="#/create/ELECTRICAL HAZARD" ng-click="dspin = true;">
+				<div ng-show="dspin" class="selected"></div>
+				<img class="centerme" ng-src="{{static_resource_url}}/ulimages/images/icon-issue-medical-treatment.png"/>
+			<div style="color: #797979; font-size: 90%; margin-top: 10px; text-align:center">Electrical Hazard</div></a></div></div>
+			
+			<div><div class="boarder"><a href="#/create/INSPECTION OVERDUE" ng-click="espin = true;">
+				<div ng-show="espin" class="selected"></div>
+				<img class="centerme" ng-src="{{static_resource_url}}/ulimages/images/icon-issue-lost-day.png"/>
+			<div style="color: #797979; font-size: 90%; margin-top: 10px; text-align:center">Inspection Overdue</div></a></div></div>
+			
+			<div><div class="boarder"><a href="#/create/RAISE A CONCERN" ng-click="fspin = true;">
+				<div ng-show="fspin" class="selected"></div>
+				<img class="centerme" ng-src="{{static_resource_url}}/ulimages/images/icon-issue-7-days-or-more.png"/>
+			<div style="color: #797979; font-size: 90%; margin-top: 10px; text-align:center">Raise A Concern</div></a></div></div>
+		
+	</div>
+	
+	
+		<div class="row">
+		<div class="columns small-12 large-12">
+        <h8 style="text-transform: uppercase; font-weight: 900;">latest reported issue</h8>
+        </div>
+    <!--    <div class="columns small-6 large-6" style="text-align:right;font-size:80%">
+        <a href="#/list" style="color:#732358;">VIEW ALL ISSUES<a> 
+        </div>-->
+    </div>
+
+	<div class="row" style="margin-top: 5px;">
+		<a  ng-href="#/view/{{i.Id}}">
+				<div class="large-4 small-4  columns">
+					<img style="height: 88px;" ng-src="{{i.imgsrc}}"/>
+				</div>
+				<div class="large-8 small-8 columns" style="color:black; padding-top: 10px;">
+					<span style="font-size: 80%; font-weight:bold; text-transform:uppercase;">{{ i.Type__c | limitTo: 80 }}</span><br/>
+					<span style="font-size: 80%;">{{ i.Title__c | limitTo: 80 }} </span><br/>
+                    <small><span style="">- {{users[i.CreatedById].Name}}</span>
+                     <span style="color: #898f9c;">{{i.timeago}}</span></small></p>
+				</div>
+			</a> 
+		</div>
+		
+		<div class="row">
+				<hr style="margin-bottom: 0px;"/>
+				<div class="large-7 small-7 columns" style="padding-top: 20px;">
+					<h8 style="text-transform: uppercase; font-weight: 900;">SAFE LIFTING TIPS</h8>
+					<p style="font-size: 80%; margin-top: 5px;" class="reportSub">
+                    Think before you lift
+                    Keep load close to the waist
+                    Don't bend your back!</p>
+				</div>
+				<div class="large-5 small-5  columns">
+					<img ng-src="{{static_resource_url}}/ui/photo-safety-tips.png"/>
+				</div>
+		</div>
+		
+
+	
+	<div class="row" style="margin-top: 15px;">
+				<div class="large-12 columns">
+					<a href="#/list" class="button expand" style="background: #ee8b2e;"  >List Issues</a>
+				</div>
+		</div>

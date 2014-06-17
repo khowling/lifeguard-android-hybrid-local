@@ -1,0 +1,555 @@
+'use strict';
+
+
+		angular.module('myApp', ['ngRoute', 'ngAnimate']).config(['$routeProvider', '$sceDelegateProvider',
+		  function($routeProvider, $sceDelegateProvider) {
+		  
+		     $sceDelegateProvider.resourceUrlWhitelist([
+			    // Allow same origin resource loads.
+			    'self',
+			    // Allow loading from outer templates domain.
+			    static_resource_url + '/*'
+			  ]); 
+  
+		    $routeProvider.
+		      when('/home', {
+		        templateUrl: static_resource_url+ '/lifeguard_tplt_home',
+		        controller: function ($scope, $rootScope, $routeParams) { 
+		        
+		        				$rootScope.heading = {
+							    			title1: '', title2: 'HEALTH & SAFETY', navicon: 'icon-hamburger', navto: '#/list'
+							    		};
+							    		
+							    		
+		          			angular.element(document).ready(function () {
+											jQuery(".ng-view").foundation();
+											window.scrollTo(0, 0);
+										});
+	
+									angular.element(document).ready(function () {
+									 jQuery('.multiple-items').slick({
+						          slidesToShow: 3,
+						          slidesToScroll: 3,
+						          arrows: false,
+						          infinite: false
+						        });
+						        });
+
+								$rootScope.$watch ('users', function(val) {
+								 			$scope.users = val;
+								 });
+							   forcetkClient.query('SELECT Id, CreatedById, CreatedDate, Name, Type__c, Title__c, picId__c, PicDocId__c FROM Incident__c ORDER BY Id DESC limit 1', function(response){
+							   			if (response.records) {
+								   			response.records[0].timeago = moment(response.records[0].CreatedDate).fromNow();
+								   			if (response.records[0].picId__c) {
+								   				forcetkClient.ajax('/' + sfdc_api_version + '/chatter/files/batch/' + response.records[0].PicDocId__c, function (filedata) {
+								   						$scope.$apply(function(){
+								   							$scope.i = response.records[0];
+								   							$scope.i.imgsrc = sf_host_url + filedata.results[0].result.downloadUrl;
+								   						});
+								   					});
+								   			}
+											}	   			
+							   	});
+						  	}
+		      }).
+		      when('/create/:title', {
+		        templateUrl: static_resource_url+ '/lifeguard_tplt_create',
+		        controller: 'MyCtrl'
+		      }).
+		      when('/view/:id', {
+		        templateUrl: static_resource_url+ '/lifeguard_tplt_view',
+		        controller: 'MyListCtrl'
+		      }).
+		      when('/list', {
+		        templateUrl: static_resource_url+ '/lifeguard_tplt_list',
+		        controller: 'MyListCtrl'
+		      }).
+		      otherwise({
+		        redirectTo: '/home'
+		      });
+		  }]).run (function($rootScope, $location) {
+		   $rootScope.users = {};
+		   $rootScope.static_resource_url = static_resource_url;
+
+  	   forcetkClient.query("Select SmallPhotoUrl, Name, Id From User", function(results){
+	  	   	var users = {};
+	  	   	for (var uidx in results.records) {
+	  	   		var u = results.records[uidx];
+	  	   		users[u.Id] = u;
+	         }
+	         $rootScope.users = users;
+       });
+       
+       $rootScope.close = function() {
+					$j('#firstModal').foundation('reveal', 'close');
+					if ($rootScope.modal.id) {
+						$location.path( "/view/" + $rootScope.modal.id);
+					} else {
+						$location.path( "/home");
+					}
+				}
+
+		   });
+		  
+
+  	var MyListCtrl = function($scope, $routeParams, $rootScope, $location) {
+  	
+  			angular.element(document).ready(function () {
+					jQuery(".ng-view").foundation();
+					window.scrollTo(0, 0);
+				});
+				
+				$rootScope.heading = {title2: '' , title1: 'REPORTED ISSUES', navicon: 'icon-back', navto: '#/home'}
+  	
+	  		$scope.search = { Status__c: ''};
+	  		$scope.showmap = false;
+	  		
+	  		$scope.setFilter = function(val) {
+	  			$scope.showmap = false;
+	  			$scope.search.Status__c = val;
+	  		}
+  		
+	  		$scope.loadMap = function () {
+	  			var mapOptions = {
+				    zoom: 6
+			  };
+			  
+			 	var map = new google.maps.Map(document.getElementById('map-canvas'),   mapOptions);
+				var markers = [];
+				//Reusable infowindow object
+        var infowindow;
+        
+				var addmarker = function(i) {
+		        console.log (i + ': Create marker ' + markers[i].title);
+	          var marker = new google.maps.Marker({
+	              position: markers[i].pos,
+	              map: map,
+	              title: markers[i].title,
+	              name: markers[i].id,
+	              animation: google.maps.Animation.DROP,
+	          });
+	
+	          //Creating the closure
+	          (function (i, marker) {   
+	
+	              //Add infowindow
+	              google.maps.event.addListener(marker, 'click', function () {
+	                  if (!infowindow) {
+	                      infowindow = new google.maps.InfoWindow();
+	                  }
+	                  //Setting content of info window
+	                  infowindow.setContent('<a href="#/view/'+marker.name+'">'+marker.title+'</a>');
+	
+	                  infowindow.open(map, marker);
+	              });
+	          })(i, marker); 
+	          
+		      if(i++ < (markers.length -1)) {
+		          setTimeout(function() {addmarker(i)}, 100);
+		      }
+			  }
+			    
+		    
+				
+				function createMarkers() {
+				  for (var i in $scope.Incident) {
+				  	var curri = $scope.Incident[i];
+				  	if (typeof  curri.Where__Latitude__s == 'undefined' || curri.Where__Latitude__s == null) {
+				  		console.log (curri.Name + ' no location');
+				  	} else {
+				  			console.log (curri.Name + ' location ' + curri.Where__Latitude__s + ' : ' + curri.Where__Longitude__s );
+					      markers.push ( {id: curri.Id, title: curri.Name , pos: new google.maps.LatLng(curri.Where__Latitude__s, curri.Where__Longitude__s) });
+				 	 }
+				}
+				if (markers.length >0)	addmarker(0);
+			}
+				
+
+    
+
+				/* fallback function */
+				function handleNoGeolocation(errorFlag) {
+					console.log ('centering map to london');
+				  map.setCenter(new google.maps.LatLng(51.5072, -0.125487));
+				  createMarkers();
+				}
+
+
+			  // Try HTML5 geolocation
+			  if(navigator.geolocation) {
+			  	console.log ('centering map to currnet location');
+			    navigator.geolocation.getCurrentPosition(function(position) {
+	
+						    map.setCenter(new google.maps.LatLng(position.coords.latitude,
+				                                       position.coords.longitude));
+						    createMarkers();
+					    }, function () {
+					    		console.log ('centering map to currnet location, fallback to fixed point');
+					    		 handleNoGeolocation(true);
+					    }, 
+					    { maximumAge: 3000, timeout: 1000, enableHighAccuracy: false });
+			  } else {
+			    // Browser doesn't support Geolocation
+			    handleNoGeolocation(false);
+			  }
+			  
+
+			}
+			
+
+  		$rootScope.$watch ('users', function(val) {
+								 			$scope.users = val;
+								 });
+								 
+  		$scope.getIncidents = function () {
+	  		var q = "SELECT Id, Where__Latitude__s, Where__Longitude__s, CreatedById, CreatedDate, Name, Type__c, Title__c, picId__c, PicDocId__c,  Status__c, (Select CreatedDate, CreatedById, ParentId, Type, Title, Body From Feeds where Type = 'TextPost')  FROM Incident__c";
+	  		if ($routeParams.id) 
+		  	  q +=  " where id = '"+ $routeParams.id +"'";
+	  	  else
+	  	  	q +=  " ORDER BY Id DESC limit 15";
+	  	  
+	  	  forcetkClient.query(q, function(response){
+
+							var getBearerUrls = '';
+  			   		for (var idx in response.records) {
+	            	var i = response.records[idx];
+	            	
+	            	i.timeago = moment(i.CreatedDate).fromNow();
+		            if (i.PicDocId__c) {
+            			//i.imgsrc = sf_host_url + '/sfc/servlet.shepherd/version/download/' + i.picId__c;
+            			if (getBearerUrls.length >0) getBearerUrls+= ',';
+            			getBearerUrls += i.PicDocId__c;
+            		} else {
+            			i.imgsrc = 'http://placehold.it/240x240&text=[No Picture]';
+								}
+								if (i.Feeds) {
+	            		for (var fidx in i.Feeds.records) {
+	            			var fitm = i.Feeds.records[fidx];
+	            			fitm.timeago = moment(fitm.CreatedDate).fromNow();
+	            		}
+	            	}
+            	}
+            	
+            	
+            	var appscope = function() {
+            	    $scope.$apply(function(){	
+					            if ($routeParams.id) {	
+				           			if (response.records[0]) {
+					           			$rootScope.heading = {title2: response.records[0].Name , title1: 'REPORTED ISSUE', navicon: 'icon-back', navto: '#/home'};
+							            $scope.Incident__c = response.records[0];
+							          } else { 
+							            $rootScope.heading = {title2: $routeParams.id , title1: 'INCEDENT NOT FOUND', navicon: 'icon-back', navto: '#/home'}; 
+							          }
+						          } else {
+					            	 $scope.Incident = response.records;
+						          }
+						     });
+            	}
+            	
+            	if (getBearerUrls.length >0) {
+			   				forcetkClient.ajax('/' + sfdc_api_version + '/chatter/files/batch/' + getBearerUrls, function (filedata) {
+			   						var bearerUrls = {};
+			   						for (var fidx in filedata.results) {
+			   							bearerUrls[filedata.results[fidx].result.id]  = filedata.results[fidx].result.downloadUrl;
+			   						}
+			   						
+			   						for (var idx in response.records) {
+				   						var i = response.records[idx];
+					            if (i.PicDocId__c) {
+			            			i.imgsrc = sf_host_url + bearerUrls[i.PicDocId__c];
+			            		}
+			   						}
+			   						appscope();
+
+			   					});
+			   			} else {
+			   				appscope();
+			   			}
+
+         }); 
+	  	}
+  	  $scope.getIncidents();
+
+			$scope.assign = function () {
+					forcetkClient.update('Incident__c', $routeParams.id, { Status__c: 'Assigned' }, function(data) {
+							var assto = '';
+							if ($scope.users[sf_userid]) {
+								assto = ' to ' + $scope.users[sf_userid].Name;
+							}
+							$scope.$apply(function() {
+								$rootScope.modal = { title1: 'ISSUE ASSIGNED', title2: 'This issue has been assigned' + assto};
+								});
+							$j('#firstModal').foundation('reveal', 'open');
+					});
+			}
+			
+			$scope.assignclose = function() {	
+				forcetkClient.update('Incident__c', $routeParams.id, { Status__c: 'Closed' }, function(data) {
+							$scope.$apply(function() {
+								$rootScope.modal = { title1: 'ISSUE RESOLVED', title2: 'The issue reported has now been resolved'};
+								});
+							$j('#firstModal').foundation('reveal', 'open');
+					});
+			}
+			
+			 $scope.addcomment = function () {
+        	$scope.FeedItem.ParentId = $routeParams.id;
+        	forcetkClient.create('FeedItem', $scope.FeedItem, function(data) {
+        			console.log('Success! Created Feeditem ' + data.id);
+        			$scope.$apply(function(){
+        					$scope.FeedItem.timeago = moment().fromNow();
+        					$scope.FeedItem.CreatedById = sf_userid;
+        					if (!$scope.Incident__c.Feeds) $scope.Incident__c.Feeds = {records: [], totalSize: 0};
+		        			$scope.Incident__c.Feeds.records.push ($scope.FeedItem);
+		        			$scope.Incident__c.Feeds.totalSize++;
+		        			$scope.FeedItem = {};
+	        			});
+        	});
+        	
+        };
+        
+  	}
+  	
+
+		var MyCtrl = function($http, $scope, $routeParams, $rootScope, $location) {
+		
+			angular.element(document).ready(function () {
+				jQuery(".ng-view").foundation();
+				window.scrollTo(0, 0);
+			});
+			
+
+			$rootScope.heading = { title2: $routeParams.title, title1: 'HEALTH & SAFETY', navicon: 'icon-back', navto: '#/home'};
+
+						
+			$scope.Incident__c = {	Type__c: $routeParams.title		};
+			
+			$scope.selectWhen = function (val) {
+				$scope.Incident__c.When_did_you_see_it__c = val;
+				$j('#whendrop').foundation('dropdown', 'closeall');
+			}
+					
+			$scope.unsetGPS = function () {
+				if ($scope.gotGPS) {
+					$scope.Incident__c.Where__latitude__s = null;
+					$scope.Incident__c.Where__longitude__s = null;
+					$scope.Incident__c.Site__c = null;
+					$scope.gotGPS = false;
+				}
+			}
+			
+			$scope.setGPS = function () {
+				$scope.waitingGPS = true;
+				console.log ('called setGPS');
+				 navigator.geolocation.getCurrentPosition(function (pos) {
+					 			console.log ('called setGPS success ' + JSON.stringify(pos));
+	              $scope.Incident__c.Where__latitude__s = pos.coords.latitude;
+	              $scope.Incident__c.Where__longitude__s = pos.coords.longitude;
+	              $scope.$apply(function(){
+	              	console.log ('locking field');
+	              	$scope.Incident__c.Site__c = 'Current Location';
+	              	$scope.gotGPS = true;
+	              	$scope.waitingGPS = false;
+	              	});
+              }, function onError(error) {
+								//console.log ('called setGPS error ' + JSON.stringify(error));
+								$scope.waitingGPS = false;
+								alert ('device location not currently available, try again later');
+							},
+							{ maximumAge: 3000, timeout: 5000, enableHighAccuracy: true }
+              );
+			}
+			
+			$scope.picupload = {
+				progress : 0,
+				imgsrc:  static_resource_url + '/ulimages/images/icon-take-photo.png',
+				imgloaded: false
+			};
+
+
+			$scope.save = function() {
+				forcetkClient.create('Incident__c', $scope.Incident__c, function(data) {
+
+						console.log('Success! Created Incident__c ' + data.id);
+						$scope.$apply(function() {
+							$rootScope.modal = { id: data.id, title1: 'THANK YOU FOR REPORTING THE ISSUE', title2: 'The issue has been reported and you will get an update when it has been assigned and resolved.'};
+						});
+						$j('#firstModal').foundation('reveal', 'open');
+						$scope.Incident__c.id = data.id;
+
+					}, function(err) {
+						alert(err);
+					});
+			}
+			
+			var incProgress;
+			var countup = function(uptonum, speed) {
+				if (incProgress) { clearInterval(incProgress); incProgress = null; }
+				incProgress = setInterval(function(){ 
+					if ($scope.picupload.progress === uptonum) {
+						clearInterval(incProgress); incProgress = null;
+						if (uptonum == 100) {
+							$scope.$apply(function(){
+								$scope.picupload.progress = 0;
+							});
+						}
+					} 
+						else   {
+							$scope.$apply(function(){
+								$scope.picupload.progress++;
+							});
+						}
+					}, speed);
+			}
+
+			var uploadfiletochatter = function (f, progressSpeed) {
+
+					if (f) {
+						$scope.picupload.progressVisible = true;
+						countup(1, 1);
+
+						
+						var fd = new FormData();
+						
+            //var metastr = JSON.stringify({attachment:{attachmentType:"NewFile",description:"Quarterly review",title:"2012_q"},body:{messageSegments:[{type:"Text",text:"High priority content"}]}});
+            //var blob = new Blob([filemeta], { type: 'application/json; charset=UTF-8', encoding: 'UTF-8'});
+            //formData.append("json", blob);
+            
+            fd.append("fileName", "lifeguardmobile.jpg");
+            fd.append("text", "Picture from your Lifeguard app");
+            fd.append("feedItemFileUpload", f);
+
+						countup(80, progressSpeed);
+						$http.post(
+								sf_host_url + '/services/data/v26.0/chatter/feeds/user-profile/' + sf_userid + '/feed-items',
+								fd,
+								{
+									transformRequest: angular.identity,
+									headers: {
+										'X-Connect-Bearer-Urls' : true,
+							      'Content-Type': undefined /* 'multipart/form-data' */,
+							      'Authorization': 'OAuth ' + forcetkClient.getSessionToken()
+							    }
+			        	})
+			        .success(function(data){
+			        		var the069 = data.attachment.id;  // chatter file entry
+			        		var the068 = data.attachment.versionId;  // pic_Id (Version)
+			        		countup(90, 150);
+			        		
+			        		forcetkClient.ajax('/' + sfdc_api_version + '/chatter/files/' + the069, function (filedata) {
+			        				var theBearerURL = filedata.downloadUrl;
+											console.log (angular.toJson(filedata));
+											
+											console.log('Success! Created ContentVersion ' + the068);
+
+											$scope.$apply(function(){
+												  $scope.picupload.imgsrc = '';
+												  $scope.picupload.imgloaded = true;
+													$scope.Incident__c.picId__c = the068;
+													$scope.picupload.imgsrc = sf_host_url + theBearerURL;
+												});
+												$scope.picupload.progress = 90;
+											  countup(100, 200);
+
+									});
+			        })
+			        .error(function(data){
+			        		$scope.picupload.progress = 99;
+									countup(100, 200);
+			        		alert('feed item error: ' + angular.toJson(data));
+			        });
+        
+        	}
+			}
+			
+			$scope.takepicture = function (sourcet) {
+				if (hybridapp) {
+					console.log ('takepicture with hybrid libraries : ' + sourcet + '( PHOTOLIBRARY : 0,  CAMERA : 1,)');
+					navigator.camera.getPicture(function (imageData) {
+							console.log ('got image data ' + imageData );
+							
+							// base64 encoded image						  
+						  var binary = atob(imageData);
+					    var array = [];
+					    for(var i = 0; i < binary.length; i++) {
+					        array.push(binary.charCodeAt(i));
+					    }
+					    var u8a = new Uint8Array(array);
+					    try {
+					    	var u8blob = new Blob([u8a], {type: 'image/jpeg'});
+					    	uploadfiletochatter(u8blob, 50);
+					    } catch (e) {
+					    	
+					    	var BlobBuilderObj = new (window.BlobBuilder || window.WebKitBlobBuilder)();
+						    if(e.name == 'TypeError' && BlobBuilderObj){
+						    		alert ('Sorry, Browser doesnt support file upload');				
+					    			// https://code.google.com/p/android/issues/detail?id=22441
+						        //BlobBuilderObj.append(u8a.buffer);
+						        //u8blob = BlobBuilderObj.getBlob("image/jpeg");
+						    } else {
+										alert ('Sorry, Browser doesnt support file upload');					    
+						    }
+					    }
+					    
+							
+							
+					//Camera.PictureSourceType.PHOTOLIBRARY
+							}, function(err) { console.log ('error : ' + angular.toJson(err)); }, 
+							{ quality: 10,  sourceType: sourcet, destinationType :  /* Camera.DestinationType.FILE_URI */  Camera.DestinationType.DATA_URL  });
+				} else {
+					$j('input[id=hiddenfileinput]').click();
+				}
+			}
+			
+			$scope.fileuploadhtml5 = function (fileinput) {
+					uploadfiletochatter(fileinput.files[0], 180);
+			}
+			
+			$scope.fileuploadhtml5old = function(fileinput) {
+
+				var f = fileinput.files[0], r = new FileReader();
+				if (f) {
+					$scope.picupload.progressVisible = true;
+					countup(10, 1);
+					r.onloadend = function(e) {
+						countup(90, 150);
+						console.log('the picture is now uploaded to the browser :'
+							+ angular.toJson(e.target));
+
+						// Extract raw base64 data from data URL
+						var imageData = e.target.result.split(',')[1];
+						// Upload the image data to Chatter files
+
+					
+					
+						forcetkClient.create('ContentVersion', {
+							"Origin" : "H",
+							"PathOnClient" : f.name,
+							"VersionData" : imageData
+						}, function(data) {
+						
+							forcetkClient.ajax('/' + sfdc_api_version + '/chatter/files/' + '069w0000001LGMY', function (createddata) {
+										console.log (createddata);
+									});
+	
+							console.log('Success! Created ContentVersion ' + data.id);
+
+							$scope.$apply(function(){
+								  $scope.picupload.imgsrc = '';
+								  $scope.picupload.imgloaded = true;
+									$scope.Incident__c.picId__c = data.id;
+									$scope.picupload.imgsrc = sf_host_url + '/sfc/servlet.shepherd/version/download/' + $scope.Incident__c.picId__c;
+								});
+								$scope.picupload.progress = 90;
+							  countup(100, 200);
+	            
+						}, function(err) {
+							alert(err);
+						});
+					};
+					//r.readAsBinaryString(f);
+					r.readAsDataURL(f);
+				}
+			};
+		}

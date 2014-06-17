@@ -1,0 +1,173 @@
+
+	<style>
+	
+input.ng-invalid.ng-dirty, input.ng-invalid, textarea.ng-invalid.ng-dirty, textarea.ng-invalid {
+		border-color: #e9322d;
+		-webkit-box-shadow: 0 0 12px #f8b9b7;
+		-moz-box-shadow: 0 0 12px #f8b9b7;
+		box-shadow: 0 0 12px #f8b9b7;
+}
+
+#gps-wait-spinner {
+  display: block;
+  z-index: 10002;
+  margin-top: 8px; margin-left: 20px;
+}
+
+#gps-wait-spinner .spinner-icon {
+  width: 20px;
+  height: 20px;
+
+  border:  solid 2px transparent;
+  border-top-color:  #cccccc;
+  border-left-color: #cccccc;
+  border-radius: 10px;
+
+  -webkit-animation: gps-wait-spinner 400ms linear infinite;
+  -moz-animation:    gps-wait-spinner 400ms linear infinite;
+  -ms-animation:     gps-wait-spinner 400ms linear infinite;
+  -o-animation:      gps-wait-spinner 400ms linear infinite;
+  animation:         gps-wait-spinner 400ms linear infinite;
+}
+
+@-webkit-keyframes gps-wait-spinner {
+  0%   { -webkit-transform: rotate(0deg);   transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@-moz-keyframes gps-wait-spinner {
+  0%   { -moz-transform: rotate(0deg);   transform: rotate(0deg); }
+  100% { -moz-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@-o-keyframes gps-wait-spinner {
+  0%   { -o-transform: rotate(0deg);   transform: rotate(0deg); }
+  100% { -o-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@-ms-keyframes gps-wait-spinner {
+  0%   { -ms-transform: rotate(0deg);   transform: rotate(0deg); }
+  100% { -ms-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@keyframes gps-wait-spinner {
+  0%   { transform: rotate(0deg);   transform: rotate(0deg); }
+  100% { transform: rotate(360deg); transform: rotate(360deg); }
+}
+
+
+	</style>
+	
+		<form name="form">
+
+		  <div class="row">
+		    <div class="large-12 columns">
+		      <label>WHAT HAPPENED?</label>
+		        <textarea ng-model="Incident__c.Title__c"  placeholder="Please describe" ng-required="true"></textarea>
+		      </label>
+		    </div>
+		  </div>
+		  
+		  <!--
+		  		  <div class="row">
+		    <div class="large-12 columns">
+		      <label>WHEN?
+		        <input type="text"   placeholder="Please describe"></input>
+		      
+		    </div>
+		  </div>
+		  -->
+		  
+		<div class="row">
+      <div class="large-12 columns" >
+				<label>WHEN? </label>
+			 
+				  <div class="row collapse"  >
+			       <div class="small-9 columns">
+			         <input data-dropdown="whendrop" id="whendropinput" type="text" style="border-right: none; box-shadow: none; height: 40px;"  ng-model="Incident__c.When_did_you_see_it__c" placeholder="When did you see it?" />
+			       </div>
+			       <div class="small-3 columns">
+			        	 <span data-dropdown="whendrop" class="postfix radius" style="background: white; opacity: 0.9; height: 40px;"><img style="height: 65%;" ng-src="{{static_resource_url}}/ulimages/images/dropdown_icon.gif"/></span>
+			       </div>
+	        </div>
+     
+        <ul id="whendrop" class="tiny f-dropdown" data-dropdown-content>
+	       			<li><a ng-click="selectWhen('Just Now')">Just Now</a></li>
+	            <li><a ng-click="selectWhen('Earlier Today')">Earlier Today</a></li>
+	            <li><a ng-click="selectWhen('Yesterday Afternoon')">Yesterday Afternoon</a></li>
+	            <li><a ng-click="selectWhen('Yesterday Morning')">Yesterday Morning</a></li>
+	            <li><a ng-click="selectWhen('Earlier This Week')">Earlier This Week</a></li>
+	            <li><a ng-click="selectWhen('Last Week')">Last Week</a></li>
+	            <li><a ng-click="selectWhen('Before Last Week')">Before Last Week</a></li>
+	       </ul>
+      </div>
+		</div>
+		  
+		  
+		  <div class="row">
+		    <div class="large-12 columns">
+		      <label>WHERE?</label>
+		      <div class="row collapse">
+		        <div class="small-9 columns" ng-click="unsetGPS()">
+		          <input  ng-disabled="gotGPS" type="text" ng-model="Incident__c.Site__c" placeholder="Enter location, or use GPS" style="border-right: none; box-shadow: none; height: 40px;" ></input>
+		        </div>
+		        <div class="small-3 columns">
+		          <a ng-click="setGPS()"><span  class="postfix radius" ng-style="{background:  gotGPS && '#dddddd'  || 'white'}" style="opacity: 0.9; height: 40px;"><div ng-if="waitingGPS"  id="gps-wait-spinner"><div class="spinner-icon"></div></div> <img ng-if="!waitingGPS" style="height: 65%;" ng-src="{{static_resource_url}}/ulimages/images/icon-geolocation.png"/></span></a>
+		        </div>
+		      </div>
+		    </div>
+		  </div>
+	
+	<style>
+							div.boarder {
+						//  padding: 12px; 
+								border: 1px solid #cccccc;
+								height: 120px;
+								width: 100%;
+								display: table;
+							}
+							.centerme {
+								display: block; 
+								margin-left: auto;  
+								margin-right: auto;
+							}
+						</style>
+						
+						
+	 <div class="row" style="margin-top: 10px;">
+				<div class="large-6 small-6 columns">
+					<input type="file" id="hiddenfileinput" name="file" style="display: none;"
+						accept="image/*"
+						onchange="angular.element(this).scope().fileuploadhtml5(this);" />
+
+					<a style="cursor: pointer;" ng-click="takepicture(1);">
+						 <div class="boarder">
+								<div style="vertical-align: middle;	display: table-cell; text-align:center">
+		               <img id="takephoto" style="max-height: 120px; max-width: 100%;" ng-src="{{picupload.imgsrc}}"/><br/>
+		               <div style="margin-top: 5px;"  ng-show="!picupload.imgloaded">Take Photo</div>
+								</div>
+		            <div class="progress" style="position: absolute; bottom: 0px; left: 15px; right: 15px;  margin: 0px; border: 0px; padding: 0px; height: 5px;">
+									<span style="background: #732358; height: 100%; display: block;"  ng-style="{'width': picupload.progress+'%'}"></span>
+								</div>
+								<!-- 
+								<div ng-show="picupload.imgloaded" style="position: absolute; bottom: 0px; right: 15px;  margin: 0px; border: 0px; padding: 0px; height: 100%; width: 25px; background: #732358; ">
+									&nbsp;&nbsp;&nbsp;x
+								</div>
+								-->
+		        </div>
+	        </a> 
+        
+					
+				</div>
+				
+				<div class="large-6 small-6  columns">
+
+				</div>
+				
+		</div>
+		<div class="row" style="margin-top: 20px;">
+				<div class="large-12 columns">
+					<button ng-click="save()" class="button expand" style="background: #ee8b2e;" ng-disabled="form.$invalid" >Submit Issue</button>
+				</div>
+		</div>
+		
+		</form>
+
+
+
